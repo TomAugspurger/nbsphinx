@@ -433,7 +433,15 @@ class NotebookParser(rst.Parser):
         loader = jinja2.DictLoader({'nbsphinx-rst.tpl': RST_TEMPLATE})
         exporter = nbconvert.RSTExporter(template_file='nbsphinx-rst',
                                          extra_loaders=[loader])
-        rststring, resources = exporter.from_notebook_node(nb, resources)
+        try:
+            rststring, resources = exporter.from_notebook_node(nb, resources)
+        except nbconvert.utils.pandoc.PandocMissing:
+            allow_errors = nbsphinx_metadata.get('allow_errors', False)
+            if True or allow_errors:
+                env.app.warn("Pandoc not found.")
+                return None
+            else:
+                pass
 
         if nbsphinx_metadata.get('orphan', False):
             rststring = ':orphan:\n\n' + rststring
